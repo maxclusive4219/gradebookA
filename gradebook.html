@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="cream">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Gradebook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { bg:'var(--bg)', surface:'var(--surface)', surface2:'var(--surface-2)', line:'var(--line)', ink:'var(--ink)', dim:'var(--dim)', brand:'var(--brand)', 'brand-fg':'var(--brand-fg)' },
+    fontFamily: { display:['Fraunces','IBM Plex Sans Thai','serif'], sans:['IBM Plex Sans Thai','sans-serif'] }
+  }}
+}
+</script>
+<style>
+:root, [data-theme="cream"] { --bg:#F7F4EE; --surface:#FFFFFF; --surface-2:#FBF8F2; --line:#E8E0D2; --ink:#1F1B16; --dim:#7A7166; --brand:#B5573A; --brand-fg:#FFFFFF; --good:#5F7A4D; --warn:#C49449; --bad:#A03B2D; --info:#4A6FA5; }
+[data-theme="slate"] { --bg:#F1F5F9; --surface:#FFFFFF; --surface-2:#F8FAFC; --line:#E2E8F0; --ink:#0F172A; --dim:#64748B; --brand:#4F46E5; --brand-fg:#FFFFFF; --good:#059669; --warn:#D97706; --bad:#DC2626; --info:#2563EB; }
+[data-theme="ink"] { --bg:#0E0E10; --surface:#18181B; --surface-2:#1F1F23; --line:#2A2A30; --ink:#F4F4F5; --dim:#8B8B92; --brand:#F5A623; --brand-fg:#0E0E10; --good:#4ADE80; --warn:#FCD34D; --bad:#F87171; --info:#60A5FA; }
+[data-theme="forest"] { --bg:#F0F4F0; --surface:#FFFFFF; --surface-2:#F7FAF7; --line:#D8DDD3; --ink:#1A2E1F; --dim:#6E7B6C; --brand:#2D6A4F; --brand-fg:#FFFFFF; --good:#2D6A4F; --warn:#BC8A3F; --bad:#9D3F2E; --info:#4A6FA5; }
+[data-theme="rose"] { --bg:#FDF7F8; --surface:#FFFFFF; --surface-2:#FCF1F3; --line:#F0E0E5; --ink:#1F1419; --dim:#7E6E73; --brand:#C44862; --brand-fg:#FFFFFF; --good:#5F7A4D; --warn:#C49449; --bad:#A03B2D; --info:#4A6FA5; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family:'IBM Plex Sans Thai', system-ui, sans-serif; background:var(--bg); color:var(--ink); transition: background 0.4s, color 0.4s; -webkit-font-smoothing: antialiased; margin:0; }
+.font-display { font-family:'Fraunces','IBM Plex Sans Thai', serif; letter-spacing:-0.015em; font-optical-sizing:auto; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+@keyframes scaleIn { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+@keyframes slideRight { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:none; } }
+@keyframes drawLine { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.a-fadeUp { animation: fadeUp 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+.a-scaleIn { animation: scaleIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+.spinner { animation: spin 1s linear infinite; }
+.stagger > *:nth-child(1) { animation-delay:0ms; }
+.stagger > *:nth-child(2) { animation-delay:60ms; }
+.stagger > *:nth-child(3) { animation-delay:120ms; }
+.stagger > *:nth-child(4) { animation-delay:180ms; }
+.surface-hover { transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+.surface-hover:hover { transform: translateY(-2px); border-color: var(--dim); box-shadow: 0 8px 24px -12px rgba(0,0,0,0.12); }
+.btn { transition: transform 0.15s, background 0.15s, color 0.15s, border-color 0.15s; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.tab-btn { position: relative; transition: color 0.2s; }
+.tab-btn::after { content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--ink); transform:scaleX(0); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1); }
+.tab-btn[data-active="true"]::after { transform:scaleX(1); }
+input, select, textarea { background:var(--surface); color:var(--ink); border-color:var(--line); transition: border-color 0.15s, box-shadow 0.15s; }
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 8%, transparent); }
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+input[type=number] { -moz-appearance:textfield; }
+input::placeholder, textarea::placeholder { color:var(--dim); opacity:0.6; }
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--line); border-radius:8px; }
+::-webkit-scrollbar-thumb:hover { background:var(--dim); }
+.scrollbar-thin::-webkit-scrollbar { height:6px; width:6px; }
+.toast { animation: scaleIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+button, [role="button"] { -webkit-tap-highlight-color: transparent; }
+[data-theme="ink"] .surface-hover:hover { box-shadow: 0 8px 24px -12px rgba(0,0,0,0.5); }
+</style>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+const STORAGE_KEY = 'gradebook-v3';
+const DEFAULT_GRADE_SCALE = [{grade:'A',min:80},{grade:'B+',min:75},{grade:'B',min:70},{grade:'C+',min:65},{grade:'C',min:60},{grade:'D+',min:55},{grade:'D',min:50},{grade:'F',min:0}];
+const ATTENDANCE_OPTIONS = [{value:'present',label:'มา',short:'P',color:'good'},{value:'late',label:'สาย',short:'L',color:'warn'},{value:'leave',label:'ลา',short:'E',color:'info'},{value:'absent',label:'ขาด',short:'A',color:'bad'}];
+const ATTENDANCE_WEIGHT = { present:1, late:0.5, leave:0.5, absent:0 };
+const THEMES = [{id:'cream',name:'Cream',dot:'#B5573A'},{id:'slate',name:'Slate',dot:'#4F46E5'},{id:'forest',name:'Forest',dot:'#2D6A4F'},{id:'rose',name:'Rose',dot:'#C44862'},{id:'ink',name:'Ink',dot:'#F5A623'}];
+
+const ICONS = {
+  award: <><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></>,
+  dashboard: <><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></>,
+  users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+  calendar: <><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>,
+  pencil: <><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></>,
+  trash: <><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></>,
+  plus: <><path d="M5 12h14M12 5v14"/></>,
+  x: <><path d="M18 6 6 18M6 6l12 12"/></>,
+  check: <><path d="M20 6 9 17l-5-5"/></>,
+  search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
+  settings: <><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>,
+  save: <><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7"/></>,
+  upload: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></>,
+  download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></>,
+  alert: <><path d="m21.7 16.9-8-13.8a2 2 0 0 0-3.4 0L2.3 16.9a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3z"/><path d="M12 9v4M12 17h.01"/></>,
+  cloud: <><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></>,
+  refresh: <><path d="M3 12a9 9 0 0 1 15.5-6.36L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.36L3 16"/><path d="M3 21v-5h5"/></>,
+  sparkle: <><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></>,
+  copy: <><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></>,
+  external: <><path d="M15 3h6v6M14 10l6.1-6.1M9 21H5a2 2 0 0 1-2-2v-4M19 14v5a2 2 0 0 1-2 2h-2"/></>,
+  chevDown: <><path d="m6 9 6 6 6-6"/></>,
+  file: <><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><polyline points="14 2 14 8 20 8"/></>,
+  trending: <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>,
+  pieChart: <><path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/></>,
+  book: <><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></>,
+  layers: <><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></>,
+  folder: <><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z"/></>,
+  duplicate: <><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></>,
+};
+const Icon = ({ name, size=16, className='', strokeWidth=2 }) => { const p = ICONS[name]; if (!p) return null; return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>{p}</svg>; };
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const fmt = (n, d=1) => Number(n||0).toFixed(d);
+const nowISO = () => new Date().toISOString();
+
+function createDefaultClass(name='รายวิชาของฉัน') {
+  const weeks = [];
+  for (let i=1; i<=15; i++) weeks.push({ number:i, maxAttendance:5, assignments:[] });
+  return { id:'cls-'+uid(), name, students:[], weeks, exams:[{id:'midterm',name:'สอบกลางภาค',maxScore:25},{id:'final',name:'สอบปลายภาค',maxScore:35}], attendance:{}, scores:{}, examScores:{}, gradeScale:structuredClone(DEFAULT_GRADE_SCALE), sync:{url:'',enabled:false,lastSyncAt:null}, updatedAt:nowISO() };
+}
+function createDefaultData() { const c = createDefaultClass(); return { version:3, classes:[c], activeClassId:c.id, theme:'cream' }; }
+function migrateData(parsed) {
+  if (parsed?.version===3 && parsed?.classes) return parsed;
+  const cls = { ...createDefaultClass(parsed?.className||'รายวิชาของฉัน'), students:parsed?.students||[], weeks:parsed?.weeks||createDefaultClass().weeks, exams:parsed?.exams||createDefaultClass().exams, attendance:parsed?.attendance||{}, scores:parsed?.scores||{}, examScores:parsed?.examScores||{}, gradeScale:parsed?.gradeScale||structuredClone(DEFAULT_GRADE_SCALE), sync:parsed?.sync||{url:'',enabled:false,lastSyncAt:null} };
+  return { version:3, classes:[cls], activeClassId:cls.id, theme:parsed?.theme||'cream' };
+}
+function getLetterGrade(pct, scale) { const s = [...scale].sort((a,b)=>b.min-a.min); for (const t of s) if (pct>=t.min) return t.grade; return 'F'; }
+function calcStudent(cls, studentId, opts={}) {
+  const upToWeek = opts.upToWeek ?? cls.weeks.length;
+  const includeExams = opts.includeExams ?? true;
+  let attE=0, attP=0, asgE=0, asgP=0, examE=0, examP=0, present=0, weeks=0;
+  for (const w of cls.weeks) {
+    if (w.number > upToWeek) continue;
+    weeks++; attP += w.maxAttendance||0;
+    const at = cls.attendance[`${w.number}-${studentId}`];
+    if (at) { attE += (w.maxAttendance||0) * (ATTENDANCE_WEIGHT[at.status]??0); if (at.status==='present') present++; }
+    for (const a of (w.assignments||[])) { asgP += a.maxScore||0; const s = cls.scores[`${w.number}-${studentId}-${a.id}`]; if (s && typeof s.score==='number') asgE += s.score; }
+  }
+  if (includeExams) for (const ex of (cls.exams||[])) { examP += ex.maxScore||0; const s = cls.examScores?.[`${ex.id}-${studentId}`]; if (s && typeof s.score==='number') examE += s.score; }
+  const earned = attE+asgE+examE, possible = attP+asgP+examP, pct = possible>0?(earned/possible)*100:0;
+  return { earned, possible, pct, attEarned:attE, attPossible:attP, asgEarned:asgE, asgPossible:asgP, examEarned:examE, examPossible:examP, presentCount:present, weeksConsidered:weeks, grade:getLetterGrade(pct, cls.gradeScale) };
+}
+
+const storage = {
+  isClaudeArtifact: typeof window !== 'undefined' && !!window.storage,
+  async get(key) { if (this.isClaudeArtifact) { try { const r = await window.storage.get(key); return r?.value ?? null; } catch { return null; } } return localStorage.getItem(key); },
+  async set(key, value) { if (this.isClaudeArtifact) return window.storage.set(key, value); localStorage.setItem(key, value); },
+  async delete(key) { if (this.isClaudeArtifact) { try { await window.storage.delete(key); } catch {} return; } localStorage.removeItem(key); }
+};
+
+async function syncToCloud(url, classData) {
+  if (!url) return { ok:false, error:'no-url' };
+  try {
+    const res = await fetch(url, { method:'POST', mode:'cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(classData) });
+    const txt = await res.text();
+    try { const j = JSON.parse(txt); return j.ok?{ok:true}:{ok:false,error:j.error||'unknown'}; }
+    catch { return res.ok?{ok:true}:{ok:false,error:'invalid-response'}; }
+  } catch (e) { return { ok:false, error:e.message }; }
+}
+async function pullFromCloud(url) {
+  if (!url) return { ok:false, error:'no-url' };
+  try {
+    const res = await fetch(url+(url.includes('?')?'&':'?')+'t='+Date.now(), { method:'GET', mode:'cors' });
+    const txt = await res.text();
+    try { const j = JSON.parse(txt); return j.ok?{ok:true,data:j.data}:{ok:false,error:j.error||'unknown'}; }
+    catch { return { ok:false, error:'invalid-response' }; }
+  } catch (e) { return { ok:false, error:e.message }; }
+}
+
+const ToastContext = React.createContext(null);
+function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((message, type='info') => { const id = uid(); setToasts(t => [...t, {id,message,type}]); setTimeout(() => setToasts(t => t.filter(x => x.id!==id)), 3200); }, []);
+  return <ToastContext.Provider value={show}>{children}
+    <div className="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none">
+      {toasts.map(t => <div key={t.id} className="toast pointer-events-auto px-4 py-2.5 rounded-xl border shadow-lg bg-surface text-ink border-line flex items-center gap-2 text-sm" style={{minWidth:200}}>
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: t.type==='error'?'var(--bad)':t.type==='success'?'var(--good)':'var(--brand)' }}/>
+        {t.message}
+      </div>)}
+    </div>
+  </ToastContext.Provider>;
+}
+const useToast = () => React.useContext(ToastContext);
+
+function useGradebook() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [syncStatus, setSyncStatus] = useState('idle');
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const saveTimer = useRef(null);
+  const syncTimer = useRef(null);
+  const dataRef = useRef(null);
+  const lastSyncedStamp = useRef(null);
+
+  useEffect(() => { (async () => {
+    try {
+      const raw = await storage.get(STORAGE_KEY);
+      if (raw) {
+        const parsed = migrateData(JSON.parse(raw));
+        const active = parsed.classes.find(c => c.id === parsed.activeClassId) || parsed.classes[0];
+        if (active?.sync?.enabled && active?.sync?.url) {
+          setSyncStatus('syncing');
+          const res = await pullFromCloud(active.sync.url);
+          if (res.ok && res.data) {
+            const cloudT = res.data.updatedAt ? new Date(res.data.updatedAt).getTime() : 0;
+            const localT = active.updatedAt ? new Date(active.updatedAt).getTime() : 0;
+            if (cloudT >= localT) { const idx = parsed.classes.findIndex(c => c.id === active.id); parsed.classes[idx] = { ...res.data, id:active.id, sync:active.sync }; }
+            setSyncStatus('synced'); setTimeout(() => setSyncStatus('idle'), 1500);
+          } else { setSyncStatus('error'); setTimeout(() => setSyncStatus('idle'), 3000); }
+        }
+        setData(parsed);
+      } else { setNeedsOnboarding(true); setData(createDefaultData()); }
+    } catch { setData(createDefaultData()); setNeedsOnboarding(true); }
+    finally { setLoading(false); }
+  })(); }, []);
+
+  useEffect(() => { if (data?.theme) document.documentElement.setAttribute('data-theme', data.theme); }, [data?.theme]);
+
+  useEffect(() => {
+    if (!data) return;
+    dataRef.current = data;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => { setSaving(true); try { await storage.set(STORAGE_KEY, JSON.stringify(dataRef.current)); } finally { setSaving(false); } }, 400);
+    const active = data.classes.find(c => c.id === data.activeClassId);
+    if (active?.sync?.enabled && active?.sync?.url) {
+      const stamp = JSON.stringify({s:active.students,w:active.weeks,a:active.attendance,sc:active.scores,e:active.exams,es:active.examScores,gs:active.gradeScale,n:active.name});
+      if (lastSyncedStamp.current === stamp) return;
+      if (syncTimer.current) clearTimeout(syncTimer.current);
+      syncTimer.current = setTimeout(async () => {
+        setSyncStatus('syncing');
+        const res = await syncToCloud(active.sync.url, active);
+        if (res.ok) {
+          lastSyncedStamp.current = stamp; setSyncStatus('synced');
+          setData(d => { const c = structuredClone(d); const cls = c.classes.find(x => x.id===active.id); if (cls) cls.sync.lastSyncAt = nowISO(); return c; });
+          setTimeout(() => setSyncStatus('idle'), 1500);
+        } else { setSyncStatus('error'); setTimeout(() => setSyncStatus('idle'), 3000); }
+      }, 1500);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    const onFocus = async () => {
+      const d = dataRef.current; if (!d) return;
+      const active = d.classes.find(c => c.id === d.activeClassId);
+      if (!active?.sync?.enabled || !active?.sync?.url) return;
+      const res = await pullFromCloud(active.sync.url);
+      if (!res.ok || !res.data) return;
+      const cloudT = res.data.updatedAt ? new Date(res.data.updatedAt).getTime() : 0;
+      const localT = active.updatedAt ? new Date(active.updatedAt).getTime() : 0;
+      if (cloudT > localT) setData(prev => { const c = structuredClone(prev); const idx = c.classes.findIndex(x => x.id===active.id); if (idx>=0) c.classes[idx] = { ...res.data, id:active.id, sync:active.sync }; return c; });
+    };
+    const vis = () => { if (!document.hidden) onFocus(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', vis);
+    return () => { window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', vis); };
+  }, []);
+
+  const update = (fn) => setData(prev => fn(structuredClone(prev)));
+  const updateActive = (fn) => update(d => { const cls = d.classes.find(c => c.id === d.activeClassId); if (cls) { fn(cls); cls.updatedAt = nowISO(); } return d; });
+  return { data, setData, update, updateActive, loading, saving, syncStatus, needsOnboarding, setNeedsOnboarding };
+}
+
+const Button = ({ children, onClick, variant='default', size='md', className='', disabled, title }) => {
+  const sizes = { sm:'px-2.5 py-1 text-xs', md:'px-3.5 py-2 text-sm', lg:'px-5 py-2.5 text-sm' };
+  const variants = { default:'bg-ink text-bg hover:opacity-90 border border-ink', outline:'bg-surface text-ink hover:bg-surface2 border border-line', ghost:'bg-transparent text-ink hover:bg-surface2 border border-transparent', brand:'bg-brand text-brand-fg hover:opacity-90 border border-brand', danger:'bg-surface text-ink hover:bg-surface2 border border-line' };
+  return <button onClick={onClick} disabled={disabled} title={title} className={`btn inline-flex items-center justify-center gap-1.5 font-medium rounded-lg disabled:opacity-40 disabled:cursor-not-allowed ${sizes[size]} ${variants[variant]} ${className}`} style={variant==='danger'?{color:'var(--bad)'}:undefined}>{children}</button>;
+};
+const Card = ({ children, className='', hover=false, style }) => <div className={`bg-surface border border-line rounded-2xl ${hover?'surface-hover':''} ${className}`} style={style}>{children}</div>;
+const Input = (p) => <input {...p} className={`w-full px-3 py-2 text-sm bg-surface border border-line rounded-lg ${p.className||''}`}/>;
+const TextArea = (p) => <textarea {...p} className={`w-full px-3 py-2 text-sm bg-surface border border-line rounded-lg ${p.className||''}`}/>;
+const Select = (p) => <select {...p} className={`px-3 py-2 text-sm bg-surface border border-line rounded-lg ${p.className||''}`}>{p.children}</select>;
+
+const Modal = ({ open, onClose, title, children, maxWidth='max-w-lg' }) => {
+  useEffect(() => { if (!open) return; const onKey = (e) => e.key==='Escape' && onClose(); window.addEventListener('keydown', onKey); document.body.style.overflow='hidden'; return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow=''; }; }, [open, onClose]);
+  if (!open) return null;
+  return <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm a-fadeUp" onClick={onClose}>
+    <div className={`w-full ${maxWidth} bg-surface rounded-t-2xl sm:rounded-2xl border border-line shadow-2xl a-scaleIn max-h-[90vh] flex flex-col`} onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-line flex-shrink-0"><h3 className="font-display text-xl text-ink">{title}</h3><button onClick={onClose} className="p-1.5 hover:bg-surface2 rounded-lg text-dim"><Icon name="x" size={18}/></button></div>
+      <div className="p-5 overflow-y-auto">{children}</div>
+    </div>
+  </div>;
+};
+const StatCard = ({ label, value, sub, accent }) => <div className="a-fadeUp bg-surface border border-line rounded-2xl p-5 surface-hover"><div className="text-[11px] uppercase tracking-wider text-dim font-medium">{label}</div><div className="mt-2 font-display text-4xl" style={accent?{color:'var(--brand)'}:undefined}>{value}</div>{sub && <div className="mt-1 text-xs text-dim">{sub}</div>}</div>;
+function GradeBadge({ grade, size='md' }) { const c = grade==='A'||grade==='B+'?'var(--good)':grade==='B'||grade==='C+'?'var(--info)':grade==='C'||grade==='D+'?'var(--warn)':'var(--bad)'; const sz = {sm:'min-w-[28px] px-1.5 py-0.5 text-xs',md:'min-w-[36px] px-2.5 py-1 text-sm'}; return <span className={`inline-flex justify-center font-display font-semibold rounded-md border ${sz[size]}`} style={{color:c, borderColor:c+'40', background:c+'14'}}>{grade}</span>; }
+
+function TrendChart({ cls }) {
+  const points = useMemo(() => cls.weeks.map(w => { const avgs = cls.students.map(s => calcStudent(cls, s.id, {upToWeek:w.number, includeExams:false}).pct); const avg = avgs.length ? avgs.reduce((a,b)=>a+b,0)/avgs.length : 0; return {week:w.number, value:avg}; }), [cls]);
+  if (points.length===0 || cls.students.length===0) return <div className="text-sm text-dim text-center py-8">ยังไม่มีข้อมูล</div>;
+  const W=560, H=200, P={l:40,r:16,t:16,b:28};
+  const xStep = (W-P.l-P.r)/Math.max(1, points.length-1);
+  const yScale = v => P.t + (H-P.t-P.b)*(1-v/100);
+  const path = points.map((p,i) => `${i===0?'M':'L'} ${P.l+i*xStep} ${yScale(p.value)}`).join(' ');
+  const area = `${path} L ${P.l+(points.length-1)*xStep} ${H-P.b} L ${P.l} ${H-P.b} Z`;
+  const pathLen = points.length*80;
+  return <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+    <defs><linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--brand)" stopOpacity="0.18"/><stop offset="100%" stopColor="var(--brand)" stopOpacity="0"/></linearGradient></defs>
+    {[0,25,50,75,100].map(v => <g key={v}><line x1={P.l} y1={yScale(v)} x2={W-P.r} y2={yScale(v)} stroke="var(--line)" strokeDasharray="3 4"/><text x={P.l-8} y={yScale(v)+3} fontSize="10" textAnchor="end" fill="var(--dim)">{v}</text></g>)}
+    {points.map((p,i) => i % Math.max(1, Math.ceil(points.length/8))===0 ? <text key={i} x={P.l+i*xStep} y={H-10} fontSize="10" textAnchor="middle" fill="var(--dim)">{p.week}</text> : null)}
+    <path d={area} fill="url(#trendFill)"/>
+    <path d={path} fill="none" stroke="var(--brand)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" style={{strokeDasharray:pathLen, '--len':pathLen, animation:`drawLine 1.5s cubic-bezier(0.16,1,0.3,1) both`}}/>
+    {points.map((p,i) => <circle key={i} cx={P.l+i*xStep} cy={yScale(p.value)} r="3.5" fill="var(--surface)" stroke="var(--brand)" strokeWidth="2" className="a-fadeUp" style={{animationDelay:`${600+i*60}ms`}}/>)}
+  </svg>;
+}
+function DistributionChart({ cls }) {
+  const grades = ['A','B+','B','C+','C','D+','D','F'];
+  const counts = useMemo(() => { const m = Object.fromEntries(grades.map(g => [g,0])); for (const s of cls.students) { const t = calcStudent(cls, s.id); if (m[t.grade]!==undefined) m[t.grade]+=1; } return m; }, [cls]);
+  const max = Math.max(1, ...Object.values(counts));
+  return <div className="space-y-2">{grades.map(g => { const pct = (counts[g]/max)*100; return <div key={g} className="flex items-center gap-3"><div className="w-9 flex-shrink-0"><GradeBadge grade={g} size="sm"/></div><div className="flex-1 h-7 rounded-md overflow-hidden" style={{background:'var(--surface-2)'}}><div className="h-full rounded-md transition-all" style={{width:`${pct}%`, background:'var(--brand)', opacity:counts[g]===0?0.15:0.85, animation:'slideRight 0.6s cubic-bezier(0.16,1,0.3,1) both'}}/></div><div className="w-10 text-right text-sm text-dim tabular-nums">{counts[g]}</div></div>; })}</div>;
+}
+
+function Dashboard({ cls }) {
+  const [filterWeek, setFilterWeek] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('pct');
+  const totals = useMemo(() => cls.students.map(s => ({student:s, ...calcStudent(cls, s.id, {upToWeek:filterWeek})})), [cls, filterWeek]);
+  const filtered = totals.filter(t => { const q = search.trim().toLowerCase(); if (!q) return true; return [t.student.name, t.student.nickname, t.student.studentId].some(v => (v||'').toLowerCase().includes(q)); });
+  const sorted = [...filtered].sort((a,b) => sortBy==='pct'?b.pct-a.pct:sortBy==='name'?(a.student.name||'').localeCompare(b.student.name||'','th'):(a.student.studentId||'').localeCompare(b.student.studentId||''));
+  const avg = totals.length ? totals.reduce((s,t)=>s+t.pct,0)/totals.length : 0;
+  const tP = totals.reduce((s,t)=>s+t.presentCount,0);
+  const tW = totals.reduce((s,t)=>s+t.weeksConsidered,0);
+  const attRate = tW ? (tP/tW)*100 : 0;
+  const passing = totals.filter(t => t.grade!=='F').length;
+  return <div className="space-y-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger">
+      <StatCard label="นักศึกษา" value={cls.students.length} sub="คนทั้งหมด"/>
+      <StatCard label="คะแนนเฉลี่ย" value={`${fmt(avg)}%`} sub={`เกรดเฉลี่ย ${getLetterGrade(avg, cls.gradeScale)}`} accent/>
+      <StatCard label="อัตราเข้าเรียน" value={`${fmt(attRate,0)}%`} sub={`${tP}/${tW} ครั้ง`}/>
+      <StatCard label="ผ่านเกณฑ์" value={`${passing}/${cls.students.length}`} sub="ไม่ติด F"/>
+    </div>
+    {cls.students.length > 0 && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <Card className="lg:col-span-2 p-5 a-fadeUp" style={{animationDelay:'180ms'}}>
+        <div className="flex items-center gap-2 mb-3"><Icon name="trending" size={16}/><h3 className="font-display text-lg text-ink">แนวโน้มคะแนนเฉลี่ยห้อง</h3></div>
+        <p className="text-xs text-dim mb-3">คะแนนสะสม ณ สิ้นสุดของแต่ละสัปดาห์ (เช็คชื่อ + งานรายสัปดาห์)</p>
+        <TrendChart cls={cls}/>
+      </Card>
+      <Card className="p-5 a-fadeUp" style={{animationDelay:'240ms'}}>
+        <div className="flex items-center gap-2 mb-3"><Icon name="pieChart" size={16}/><h3 className="font-display text-lg text-ink">การกระจายเกรด</h3></div>
+        <p className="text-xs text-dim mb-4">จากคะแนนรวมทั้งหมด</p>
+        <DistributionChart cls={cls}/>
+      </Card>
+    </div>}
+    <Card className="overflow-hidden a-fadeUp" style={{animationDelay:'300ms'}}>
+      <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-line">
+        <div className="flex-1 min-w-[200px] relative"><Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-dim"/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="ค้นหา ชื่อ / รหัส / ชื่อเล่น" className="w-full pl-9 pr-3 py-2 text-sm bg-surface2 border border-line rounded-lg"/></div>
+        <div className="flex items-center gap-2 text-sm"><label className="text-dim hidden sm:inline">คิดถึง</label><Select value={filterWeek??'all'} onChange={e => setFilterWeek(e.target.value==='all'?null:Number(e.target.value))}><option value="all">ทั้งภาคเรียน</option>{cls.weeks.map(w => <option key={w.number} value={w.number}>สัปดาห์ที่ {w.number}</option>)}</Select></div>
+        <div className="flex items-center gap-2 text-sm"><label className="text-dim hidden sm:inline">เรียง</label><Select value={sortBy} onChange={e => setSortBy(e.target.value)}><option value="pct">คะแนน (มาก→น้อย)</option><option value="name">ชื่อ</option><option value="id">รหัส</option></Select></div>
+      </div>
+      {cls.students.length===0 ? <div className="px-5 py-16 text-center"><Icon name="users" size={32} className="mx-auto text-dim mb-3 opacity-60"/><p className="text-dim text-sm">ยังไม่มีนักศึกษา ไปที่แท็บ "นักศึกษา" เพื่อเริ่ม</p></div> : (
+        <div className="overflow-x-auto"><table className="w-full text-sm">
+          <thead><tr className="text-left text-[11px] uppercase tracking-wider text-dim border-b border-line">
+            <th className="px-5 py-3 font-medium">นักศึกษา</th><th className="px-5 py-3 font-medium">รหัส</th><th className="px-5 py-3 font-medium">เช็คชื่อ</th><th className="px-5 py-3 font-medium">จิตพิสัย</th><th className="px-5 py-3 font-medium">งาน</th><th className="px-5 py-3 font-medium">สอบ</th><th className="px-5 py-3 font-medium">รวม</th><th className="px-5 py-3 font-medium text-right">เกรด</th>
+          </tr></thead>
+          <tbody>{sorted.map((t,i) => <tr key={t.student.id} className="border-b border-line hover:bg-surface2 a-fadeUp" style={{animationDelay:`${Math.min(i*30,600)}ms`}}>
+            <td className="px-5 py-3"><div className="font-medium text-ink">{t.student.name}</div>{t.student.nickname && <div className="text-xs text-dim">{t.student.nickname}</div>}</td>
+            <td className="px-5 py-3 text-dim font-mono text-xs">{t.student.studentId}</td>
+            <td className="px-5 py-3"><div className="text-ink">{t.presentCount}/{t.weeksConsidered}</div><div className="text-xs text-dim">{t.weeksConsidered>0?`${fmt((t.presentCount/t.weeksConsidered)*100,0)}%`:'–'}</div></td>
+            <td className="px-5 py-3 tabular-nums"><span className="text-ink">{fmt(t.attEarned)}</span><span className="text-dim"> / {t.attPossible}</span></td>
+            <td className="px-5 py-3 tabular-nums"><span className="text-ink">{fmt(t.asgEarned)}</span><span className="text-dim"> / {t.asgPossible}</span></td>
+            <td className="px-5 py-3 tabular-nums"><span className="text-ink">{fmt(t.examEarned)}</span><span className="text-dim"> / {t.examPossible}</span></td>
+            <td className="px-5 py-3 tabular-nums"><div className="font-medium text-ink">{fmt(t.earned)}<span className="text-dim"> / {t.possible}</span></div><div className="text-xs text-dim">{fmt(t.pct)}%</div></td>
+            <td className="px-5 py-3 text-right"><GradeBadge grade={t.grade}/></td>
+          </tr>)}</tbody>
+        </table></div>
+      )}
+    </Card>
+  </div>;
+}
+
+function StudentsView({ cls, updateActive }) {
+  const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const toast = useToast();
+  const open = (s) => setEditing(s ?? {id:uid(), name:'', nickname:'', studentId:''});
+  const save = () => { updateActive(c => { const i = c.students.findIndex(x => x.id===editing.id); if (i>=0) c.students[i]=editing; else c.students.push(editing); }); toast('บันทึกแล้ว','success'); setEditing(null); };
+  const remove = (id) => { updateActive(c => { c.students = c.students.filter(s => s.id!==id); for (const k of Object.keys(c.attendance)) if (k.endsWith(`-${id}`)) delete c.attendance[k]; for (const k of Object.keys(c.scores)) if (k.includes(`-${id}-`)) delete c.scores[k]; for (const k of Object.keys(c.examScores||{})) if (k.endsWith(`-${id}`)) delete c.examScores[k]; }); setConfirmDelete(null); toast('ลบแล้ว','success'); };
+  const isNew = editing && !cls.students.find(x => x.id===editing.id);
+  return <div className="a-fadeUp">
+    <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div><h2 className="font-display text-2xl text-ink">รายชื่อนักศึกษา</h2><p className="text-sm text-dim mt-1">ทั้งหมด {cls.students.length} คน</p></div>
+      <div className="flex gap-2"><Button variant="outline" onClick={() => setBulkOpen(true)}><Icon name="upload" size={14}/>นำเข้าทีละหลายคน</Button><Button variant="brand" onClick={() => open(null)}><Icon name="plus" size={14}/>เพิ่มนักศึกษา</Button></div>
+    </div>
+    <Card>{cls.students.length===0 ? <div className="px-5 py-16 text-center"><Icon name="users" size={32} className="mx-auto text-dim mb-3 opacity-60"/><p className="text-dim text-sm">ยังไม่มีนักศึกษา</p></div> : (
+      <div className="overflow-x-auto"><table className="w-full text-sm">
+        <thead><tr className="text-left text-[11px] uppercase tracking-wider text-dim border-b border-line"><th className="px-5 py-3 font-medium">รหัสนักศึกษา</th><th className="px-5 py-3 font-medium">ชื่อ-นามสกุล</th><th className="px-5 py-3 font-medium">ชื่อเล่น</th><th className="px-5 py-3"></th></tr></thead>
+        <tbody>{cls.students.map((s,i) => <tr key={s.id} className="border-b border-line hover:bg-surface2 a-fadeUp" style={{animationDelay:`${Math.min(i*25,500)}ms`}}>
+          <td className="px-5 py-3 font-mono text-xs text-ink">{s.studentId}</td>
+          <td className="px-5 py-3 text-ink">{s.name}</td>
+          <td className="px-5 py-3 text-dim">{s.nickname || '–'}</td>
+          <td className="px-5 py-3 text-right"><button onClick={() => open(s)} className="btn p-1.5 rounded-md text-dim hover:bg-surface2 hover:text-ink mr-1"><Icon name="pencil" size={14}/></button><button onClick={() => setConfirmDelete(s)} className="btn p-1.5 rounded-md hover:bg-surface2" style={{color:'var(--bad)'}}><Icon name="trash" size={14}/></button></td>
+        </tr>)}</tbody>
+      </table></div>
+    )}</Card>
+    <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew?'เพิ่มนักศึกษา':'แก้ไขข้อมูลนักศึกษา'}>
+      {editing && <div className="space-y-4">
+        <div><label className="block text-xs font-medium text-dim mb-1">รหัสนักศึกษา</label><Input value={editing.studentId} onChange={e => setEditing({...editing, studentId:e.target.value})} placeholder="6612345678"/></div>
+        <div><label className="block text-xs font-medium text-dim mb-1">ชื่อ-นามสกุล</label><Input value={editing.name} onChange={e => setEditing({...editing, name:e.target.value})} placeholder="นายสมชาย ใจดี"/></div>
+        <div><label className="block text-xs font-medium text-dim mb-1">ชื่อเล่น</label><Input value={editing.nickname} onChange={e => setEditing({...editing, nickname:e.target.value})} placeholder="สมชาย"/></div>
+        <div className="flex justify-end gap-2 pt-2"><Button variant="ghost" onClick={() => setEditing(null)}>ยกเลิก</Button><Button variant="brand" onClick={save} disabled={!editing.name || !editing.studentId}><Icon name="save" size={14}/>บันทึก</Button></div>
+      </div>}
+    </Modal>
+    <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="ยืนยันการลบ">
+      {confirmDelete && <div className="space-y-4">
+        <div className="flex gap-3 p-3 rounded-lg" style={{background:'color-mix(in srgb, var(--bad) 8%, transparent)', border:'1px solid color-mix(in srgb, var(--bad) 25%, transparent)'}}><Icon name="alert" size={20} className="flex-shrink-0" style={{color:'var(--bad)'}}/><p className="text-sm text-ink">ลบ <strong>{confirmDelete.name}</strong> รวมถึงคะแนนทั้งหมด ไม่สามารถย้อนกลับได้</p></div>
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setConfirmDelete(null)}>ยกเลิก</Button><Button variant="brand" onClick={() => remove(confirmDelete.id)} className="!bg-[var(--bad)] !border-[var(--bad)]"><Icon name="trash" size={14}/>ลบ</Button></div>
+      </div>}
+    </Modal>
+    <BulkAddModal open={bulkOpen} onClose={() => setBulkOpen(false)} updateActive={updateActive} toast={toast}/>
+  </div>;
+}
+function BulkAddModal({ open, onClose, updateActive, toast }) {
+  const [text, setText] = useState('');
+  const submit = () => { const lines = text.split('\n').map(l => l.trim()).filter(Boolean); const ns = lines.map(line => { const p = line.split(/[,\t]/).map(x => x.trim()); return {id:uid(), studentId:p[0]||'', name:p[1]||'', nickname:p[2]||''}; }).filter(s => s.name && s.studentId); if (ns.length===0) { toast('ไม่พบข้อมูลที่ถูกต้อง','error'); return; } updateActive(c => { c.students.push(...ns); }); toast(`เพิ่ม ${ns.length} คนแล้ว`,'success'); setText(''); onClose(); };
+  return <Modal open={open} onClose={onClose} title="นำเข้านักศึกษาทีละหลายคน">
+    <div className="space-y-3"><p className="text-sm text-dim">วางข้อมูล แต่ละบรรทัดใช้คอมมาคั่น:<br/><code className="text-xs bg-surface2 px-1.5 py-0.5 rounded">รหัส, ชื่อ-นามสกุล, ชื่อเล่น</code></p><TextArea value={text} onChange={e => setText(e.target.value)} rows={10} placeholder="6612345001, นายสมชาย ใจดี, ชาย&#10;6612345002, นางสาวมาลี รักเรียน, มาลี" className="font-mono"/><div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>ยกเลิก</Button><Button variant="brand" onClick={submit}><Icon name="upload" size={14}/>นำเข้า</Button></div></div>
+  </Modal>;
+}
+
+function WeeklyView({ cls, updateActive }) {
+  const [selectedWeek, setSelectedWeek] = useState(cls.weeks[0]?.number ?? 1);
+  const week = cls.weeks.find(w => w.number===selectedWeek);
+  const [leaveModal, setLeaveModal] = useState(null);
+  const [assignModal, setAssignModal] = useState(false);
+  const toast = useToast();
+  useEffect(() => { if (!cls.weeks.find(w => w.number===selectedWeek)) setSelectedWeek(cls.weeks[0]?.number ?? 1); }, [cls.weeks, selectedWeek]);
+  if (!week) return <Card className="p-8 text-center text-dim">ยังไม่มีสัปดาห์</Card>;
+  const setAtt = (sid, status, reason) => updateActive(c => { const k = `${week.number}-${sid}`; if (status===null) delete c.attendance[k]; else c.attendance[k] = reason!==undefined ? {status,reason} : {status}; });
+  const setScore = (sid, aid, score, status) => updateActive(c => { const k = `${week.number}-${sid}-${aid}`; if (score==='' && !status) { delete c.scores[k]; return; } c.scores[k] = {score:score===''?null:Number(score), status:status||'submitted'}; });
+  const markAll = () => { updateActive(c => { for (const s of c.students) { const k = `${week.number}-${s.id}`; if (!c.attendance[k]) c.attendance[k] = {status:'present'}; } }); toast('เช็คมาทั้งห้องแล้ว','success'); };
+  return <div className="a-fadeUp">
+    <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+      <div><h2 className="font-display text-2xl text-ink">บันทึกรายสัปดาห์</h2><p className="text-sm text-dim mt-1">เช็คชื่อและบันทึกคะแนนงาน</p></div>
+      <div className="flex gap-2"><Button variant="outline" onClick={markAll} disabled={cls.students.length===0}><Icon name="check" size={14}/>เช็คมาทั้งห้อง</Button><Button variant="outline" onClick={() => setAssignModal(true)}><Icon name="file" size={14}/>จัดการงาน</Button></div>
+    </div>
+    <div className="mb-5 -mx-1 overflow-x-auto scrollbar-thin"><div className="flex gap-1 px-1 pb-2">{cls.weeks.map(w => <button key={w.number} onClick={() => setSelectedWeek(w.number)} className={`btn flex-shrink-0 px-3.5 py-2 text-sm rounded-lg border ${w.number===selectedWeek?'bg-ink text-bg border-ink':'bg-surface text-ink border-line hover:border-dim'}`}>สัปดาห์ {w.number}</button>)}</div></div>
+    <Card>
+      <div className="px-5 py-4 border-b border-line flex flex-wrap items-center gap-4">
+        <div className="flex-1"><div className="text-[11px] uppercase tracking-wider text-dim">กำลังบันทึก</div><div className="font-display text-2xl text-ink mt-0.5">สัปดาห์ที่ {week.number}</div></div>
+        <div className="flex items-center gap-3 text-sm">
+          <div><div className="text-xs text-dim mb-0.5">คะแนนจิตพิสัย</div><input type="number" value={week.maxAttendance} onChange={e => updateActive(c => { const w = c.weeks.find(x => x.number===week.number); w.maxAttendance = Number(e.target.value)||0; })} className="w-20 px-2 py-1.5 text-sm border border-line rounded-lg"/></div>
+          <div><div className="text-xs text-dim mb-0.5">งาน</div><div className="text-ink py-1.5">{(week.assignments||[]).length} ชิ้น</div></div>
+        </div>
+      </div>
+      {cls.students.length===0 ? <div className="px-5 py-16 text-center text-dim text-sm">ยังไม่มีนักศึกษา</div> : (
+        <div className="overflow-x-auto"><table className="w-full text-sm">
+          <thead><tr className="text-left text-[11px] uppercase tracking-wider text-dim border-b border-line">
+            <th className="px-5 py-3 font-medium sticky left-0 bg-surface">นักศึกษา</th>
+            <th className="px-5 py-3 font-medium">เช็คชื่อ</th>
+            {(week.assignments||[]).map(a => <th key={a.id} className="px-5 py-3 font-medium whitespace-nowrap"><div>{a.name}</div><div className="text-[10px] text-dim normal-case mt-0.5">เต็ม {a.maxScore}</div></th>)}
+            <th className="px-5 py-3 font-medium text-right">รวม</th>
+          </tr></thead>
+          <tbody>{cls.students.map(s => {
+            const at = cls.attendance[`${week.number}-${s.id}`];
+            let rt = 0;
+            if (at) rt += (week.maxAttendance||0) * (ATTENDANCE_WEIGHT[at.status]??0);
+            for (const a of (week.assignments||[])) { const sc = cls.scores[`${week.number}-${s.id}-${a.id}`]; if (sc?.score) rt += sc.score; }
+            const rm = (week.maxAttendance||0) + (week.assignments||[]).reduce((x,a)=>x+a.maxScore,0);
+            return <tr key={s.id} className="border-b border-line">
+              <td className="px-5 py-3 sticky left-0 bg-surface"><div className="font-medium text-ink">{s.name}</div>{s.nickname && <div className="text-xs text-dim">{s.nickname} · {s.studentId}</div>}</td>
+              <td className="px-5 py-3"><AttendanceToggle value={at?.status} reason={at?.reason} onChange={(status) => { if (status==='leave') setLeaveModal({studentId:s.id, currentReason:at?.reason||''}); else setAtt(s.id, status); }}/></td>
+              {(week.assignments||[]).map(a => { const sc = cls.scores[`${week.number}-${s.id}-${a.id}`]; return <td key={a.id} className="px-5 py-3"><ScoreInput max={a.maxScore} value={sc?.score??''} status={sc?.status||'submitted'} onChange={(score, status) => setScore(s.id, a.id, score, status)}/></td>; })}
+              <td className="px-5 py-3 text-right tabular-nums"><div className="font-medium text-ink">{fmt(rt)}<span className="text-dim"> / {rm}</span></div></td>
+            </tr>;
+          })}</tbody>
+        </table></div>
+      )}
+    </Card>
+    <LeaveModal open={!!leaveModal} initial={leaveModal?.currentReason||''} onClose={() => setLeaveModal(null)} onSave={(reason) => { setAtt(leaveModal.studentId, 'leave', reason); setLeaveModal(null); }}/>
+    <AssignmentManager open={assignModal} onClose={() => setAssignModal(false)} week={week} updateActive={updateActive}/>
+  </div>;
+}
+function AttendanceToggle({ value, reason, onChange }) {
+  return <div className="flex gap-1">{ATTENDANCE_OPTIONS.map(opt => { const active = value===opt.value; const c = `var(--${opt.color})`; return <button key={opt.value} onClick={() => onChange(active?null:opt.value)} title={opt.value==='leave'&&reason?`เหตุผล: ${reason}`:opt.label} className="btn w-9 h-8 text-xs font-medium border rounded-md" style={{background:active?c:'var(--surface)', color:active?'white':c, borderColor:active?c:`color-mix(in srgb, ${c} 30%, transparent)`}}>{opt.short}{opt.value==='leave'&&active&&reason&&'•'}</button>; })}</div>;
+}
+function ScoreInput({ max, value, status, onChange }) {
+  return <div className="flex items-center gap-1.5"><input type="number" min={0} max={max} step="0.5" value={value} onChange={e => onChange(e.target.value, status)} placeholder="–" className="w-16 px-2 py-1.5 text-sm border border-line rounded-md tabular-nums"/><select value={status} onChange={e => onChange(value, e.target.value)} className="text-xs px-1.5 py-1.5 border border-line rounded-md bg-surface"><option value="submitted">ส่ง</option><option value="late">ช้า</option><option value="missing">ไม่ส่ง</option></select></div>;
+}
+function LeaveModal({ open, initial, onClose, onSave }) {
+  const [reason, setReason] = useState(initial);
+  useEffect(() => setReason(initial), [initial, open]);
+  return <Modal open={open} onClose={onClose} title="บันทึกการลา"><div className="space-y-3"><p className="text-sm text-dim">ระบุเหตุผล</p><TextArea value={reason} onChange={e => setReason(e.target.value)} rows={3} placeholder="ลาป่วย, ไปสอบ, ..."/><div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>ยกเลิก</Button><Button variant="brand" onClick={() => onSave(reason)}><Icon name="save" size={14}/>บันทึก</Button></div></div></Modal>;
+}
+function AssignmentManager({ open, onClose, week, updateActive }) {
+  const add = () => updateActive(c => { const w = c.weeks.find(x => x.number===week.number); w.assignments = w.assignments||[]; w.assignments.push({id:uid(), name:`งานที่ ${w.assignments.length+1}`, maxScore:10}); });
+  const upd = (id, field, value) => updateActive(c => { const w = c.weeks.find(x => x.number===week.number); const a = w.assignments.find(x => x.id===id); if (a) a[field] = field==='maxScore'?Number(value)||0:value; });
+  const rm = (id) => updateActive(c => { const w = c.weeks.find(x => x.number===week.number); w.assignments = (w.assignments||[]).filter(a => a.id!==id); for (const k of Object.keys(c.scores)) if (k.startsWith(`${week.number}-`) && k.endsWith(`-${id}`)) delete c.scores[k]; });
+  return <Modal open={open} onClose={onClose} title={`งานในสัปดาห์ที่ ${week.number}`} maxWidth="max-w-xl">
+    <div className="space-y-3">{(week.assignments||[]).length===0 ? <div className="text-center py-8 text-sm text-dim">ยังไม่มีงาน</div> : (week.assignments||[]).map(a => <div key={a.id} className="flex gap-2 items-center"><Input value={a.name} onChange={e => upd(a.id, 'name', e.target.value)} className="flex-1"/><div className="flex items-center gap-1.5 text-sm text-dim"><span>เต็ม</span><Input type="number" value={a.maxScore} onChange={e => upd(a.id, 'maxScore', e.target.value)} className="w-20"/></div><button onClick={() => rm(a.id)} className="btn p-2 rounded-md hover:bg-surface2" style={{color:'var(--bad)'}}><Icon name="trash" size={14}/></button></div>)}<Button variant="outline" onClick={add} className="w-full"><Icon name="plus" size={14}/>เพิ่มงาน</Button></div>
+  </Modal>;
+}
+
+function ExamsView({ cls, updateActive }) {
+  const toast = useToast();
+  const add = () => updateActive(c => { c.exams = c.exams||[]; c.exams.push({id:uid(), name:`สอบ ${c.exams.length+1}`, maxScore:10}); });
+  const upd = (id, field, value) => updateActive(c => { const ex = c.exams.find(x => x.id===id); if (ex) ex[field] = field==='maxScore'?Number(value)||0:value; });
+  const rm = (id) => { updateActive(c => { c.exams = c.exams.filter(e => e.id!==id); for (const k of Object.keys(c.examScores||{})) if (k.startsWith(`${id}-`)) delete c.examScores[k]; }); toast('ลบสอบแล้ว','success'); };
+  const setSc = (eid, sid, score) => updateActive(c => { c.examScores = c.examScores||{}; const k = `${eid}-${sid}`; if (score==='') delete c.examScores[k]; else c.examScores[k] = {score:Number(score)}; });
+  return <div className="a-fadeUp">
+    <div className="flex flex-wrap items-end justify-between gap-3 mb-5"><div><h2 className="font-display text-2xl text-ink">การสอบ</h2><p className="text-sm text-dim mt-1">กลางภาค ปลายภาค หรือสอบอื่นๆ</p></div><Button variant="brand" onClick={add}><Icon name="plus" size={14}/>เพิ่มสอบ</Button></div>
+    {(cls.exams||[]).length===0 ? <Card className="p-16 text-center"><Icon name="book" size={32} className="mx-auto text-dim mb-3 opacity-60"/><p className="text-dim text-sm">ยังไม่มีรายการสอบ</p></Card> : (
+      <div className="grid gap-4 mb-6 md:grid-cols-2 lg:grid-cols-3">{(cls.exams||[]).map(ex => <Card key={ex.id} className="p-4 surface-hover"><div className="flex items-start justify-between mb-3"><div className="flex-1 min-w-0"><input value={ex.name} onChange={e => upd(ex.id, 'name', e.target.value)} className="font-display text-lg text-ink bg-transparent border-none outline-none w-full px-0"/><div className="flex items-center gap-2 mt-1"><span className="text-xs text-dim">คะแนนเต็ม</span><Input type="number" value={ex.maxScore} onChange={e => upd(ex.id, 'maxScore', e.target.value)} className="w-20"/></div></div><button onClick={() => rm(ex.id)} className="btn p-1.5 rounded-md hover:bg-surface2" style={{color:'var(--bad)'}}><Icon name="trash" size={14}/></button></div></Card>)}</div>
+    )}
+    {(cls.exams||[]).length>0 && cls.students.length>0 && <Card className="overflow-hidden">
+      <div className="px-5 py-4 border-b border-line"><h3 className="font-display text-lg text-ink">บันทึกคะแนนสอบ</h3></div>
+      <div className="overflow-x-auto"><table className="w-full text-sm">
+        <thead><tr className="text-left text-[11px] uppercase tracking-wider text-dim border-b border-line"><th className="px-5 py-3 font-medium sticky left-0 bg-surface">นักศึกษา</th>{cls.exams.map(ex => <th key={ex.id} className="px-5 py-3 font-medium whitespace-nowrap"><div>{ex.name}</div><div className="text-[10px] text-dim normal-case mt-0.5">เต็ม {ex.maxScore}</div></th>)}<th className="px-5 py-3 font-medium text-right">รวมสอบ</th></tr></thead>
+        <tbody>{cls.students.map(s => { let e=0, p=0; for (const ex of cls.exams) { p += ex.maxScore||0; const sc = cls.examScores?.[`${ex.id}-${s.id}`]; if (sc?.score) e += sc.score; } return <tr key={s.id} className="border-b border-line"><td className="px-5 py-3 sticky left-0 bg-surface"><div className="font-medium text-ink">{s.name}</div>{s.nickname && <div className="text-xs text-dim">{s.nickname} · {s.studentId}</div>}</td>{cls.exams.map(ex => { const sc = cls.examScores?.[`${ex.id}-${s.id}`]; return <td key={ex.id} className="px-5 py-3"><input type="number" min={0} max={ex.maxScore} step="0.5" value={sc?.score??''} onChange={evt => setSc(ex.id, s.id, evt.target.value)} placeholder="–" className="w-20 px-2 py-1.5 text-sm border border-line rounded-md tabular-nums"/></td>; })}<td className="px-5 py-3 text-right tabular-nums"><div className="font-medium text-ink">{fmt(e)}<span className="text-dim"> / {p}</span></div></td></tr>; })}</tbody>
+      </table></div>
+    </Card>}
+  </div>;
+}
+
+const APPS_SCRIPT_CODE = `// Gradebook ↔ Google Sheets sync
+// 1) เปิด Google Sheet ที่จะใช้เป็น backup
+// 2) Extensions → Apps Script
+// 3) ลบโค้ดเดิมและวางโค้ดนี้ทับ → กดบันทึก (ดิสก์)
+// 4) Deploy → New deployment → Web app
+// 5) Execute as: Me  |  Who has access: Anyone (with the link)
+// 6) Authorize → คัดลอก Web app URL → วางลงในแอป
+//
+// ⚠️ 1 ห้องเรียน = 1 Sheet (= 1 web app URL)
+// หลาย section ทำตามขั้นตอนเดียวกันใน Sheet ใหม่ของแต่ละห้อง
+
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sh = ss.getSheetByName('_backup');
+    if (!sh) return out({ ok:true, data:null });
+    const raw = sh.getRange('A2').getValue();
+    return out({ ok:true, data: raw ? JSON.parse(raw) : null });
+  } catch (err) { return out({ ok:false, error:String(err) }); }
+}
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let backup = ss.getSheetByName('_backup') || ss.insertSheet('_backup');
+    backup.clear();
+    backup.getRange('A1:B1').setValues([['data','updatedAt']]);
+    backup.getRange('A2:B2').setValues([[JSON.stringify(data), new Date().toISOString()]]);
+    writeSummary(ss, data);
+    return out({ ok:true });
+  } catch (err) { return out({ ok:false, error:String(err) }); }
+}
+function out(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
+function writeSummary(ss, cls) {
+  let sheet = ss.getSheetByName('สรุปคะแนน') || ss.insertSheet('สรุปคะแนน');
+  sheet.clear();
+  const W = { present:1, late:0.5, leave:0.5, absent:0 };
+  const header = ['รหัส','ชื่อ','ชื่อเล่น'];
+  for (const w of cls.weeks) header.push('W'+w.number);
+  for (const ex of (cls.exams||[])) header.push(ex.name);
+  header.push('รวม','%','เกรด');
+  const rows = [header];
+  for (const s of cls.students) {
+    const row = [s.studentId, s.name, s.nickname||''];
+    let earned=0, possible=0;
+    for (const w of cls.weeks) {
+      let we=0, wp=(w.maxAttendance||0);
+      const at = cls.attendance[w.number+'-'+s.id];
+      if (at) we += (w.maxAttendance||0) * (W[at.status]||0);
+      for (const a of (w.assignments||[])) { wp += a.maxScore||0; const sc = cls.scores[w.number+'-'+s.id+'-'+a.id]; if (sc && typeof sc.score==='number') we += sc.score; }
+      row.push(we); earned += we; possible += wp;
+    }
+    for (const ex of (cls.exams||[])) { const sc = (cls.examScores||{})[ex.id+'-'+s.id]; const v = sc && typeof sc.score==='number' ? sc.score : 0; row.push(v); earned += v; possible += ex.maxScore||0; }
+    const pct = possible>0 ? (earned/possible)*100 : 0;
+    const sorted = [...cls.gradeScale].sort((a,b) => b.min-a.min);
+    let grade='F';
+    for (const t of sorted) if (pct>=t.min) { grade=t.grade; break; }
+    row.push(earned, pct.toFixed(2)+'%', grade);
+    rows.push(row);
+  }
+  sheet.getRange(1,1,rows.length,rows[0].length).setValues(rows);
+  sheet.getRange(1,1,1,rows[0].length).setFontWeight('bold').setBackground('#1F1B16').setFontColor('#FFFFFF');
+  sheet.setFrozenRows(1); sheet.setFrozenColumns(3);
+}`;
+
+function ClassSwitcher({ data, update, onManage }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(() => { const onClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }; document.addEventListener('mousedown', onClick); return () => document.removeEventListener('mousedown', onClick); }, []);
+  const active = data.classes.find(c => c.id===data.activeClassId) || data.classes[0];
+  return <div className="relative" ref={ref}>
+    <button onClick={() => setOpen(o => !o)} className="btn flex items-center gap-2 px-3 py-1.5 rounded-lg border border-line bg-surface hover:bg-surface2 text-sm"><Icon name="folder" size={14} className="text-dim"/><span className="text-ink max-w-[180px] truncate">{active?.name||'–'}</span><Icon name="chevDown" size={14} className="text-dim"/></button>
+    {open && <div className="absolute right-0 sm:left-0 mt-1 w-64 bg-surface border border-line rounded-xl shadow-2xl z-40 a-scaleIn overflow-hidden">
+      <div className="px-3 py-2 text-[11px] uppercase tracking-wider text-dim border-b border-line">ห้องเรียน</div>
+      <div className="max-h-64 overflow-y-auto">{data.classes.map(c => <button key={c.id} onClick={() => { update(d => { d.activeClassId = c.id; return d; }); setOpen(false); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface2 flex items-center justify-between gap-2"><span className="truncate text-ink">{c.name}</span>{c.id===data.activeClassId && <Icon name="check" size={14} className="text-dim flex-shrink-0"/>}</button>)}</div>
+      <div className="border-t border-line"><button onClick={() => { setOpen(false); onManage(); }} className="w-full text-left px-3 py-2 text-sm hover:bg-surface2 flex items-center gap-2 text-ink"><Icon name="layers" size={14}/>จัดการห้องเรียน</button></div>
+    </div>}
+  </div>;
+}
+
+function ClassManager({ open, onClose, data, update }) {
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [duplicating, setDuplicating] = useState(null);
+  const [newName, setNewName] = useState('');
+  const toast = useToast();
+  const addNew = () => { update(d => { const c = createDefaultClass('ห้องใหม่'); d.classes.push(c); d.activeClassId = c.id; return d; }); toast('สร้างห้องใหม่','success'); };
+  const dup = (cls, includeStudents) => { update(d => { const copy = structuredClone(cls); copy.id = 'cls-'+uid(); copy.name = newName || cls.name+' (สำเนา)'; copy.sync = {url:'', enabled:false, lastSyncAt:null}; copy.updatedAt = nowISO(); if (!includeStudents) { copy.students=[]; copy.attendance={}; copy.scores={}; copy.examScores={}; } d.classes.push(copy); d.activeClassId = copy.id; return d; }); toast('คัดลอกห้องแล้ว','success'); setDuplicating(null); setNewName(''); };
+  const remove = (id) => { update(d => { d.classes = d.classes.filter(c => c.id!==id); if (d.classes.length===0) { const n = createDefaultClass(); d.classes.push(n); d.activeClassId = n.id; } else if (d.activeClassId===id) d.activeClassId = d.classes[0].id; return d; }); toast('ลบห้องแล้ว','success'); setConfirmDelete(null); };
+  const rename = (id, name) => update(d => { const c = d.classes.find(x => x.id===id); if (c) { c.name = name; c.updatedAt = nowISO(); } return d; });
+  return <>
+    <Modal open={open} onClose={onClose} title="จัดการห้องเรียน" maxWidth="max-w-2xl">
+      <div className="space-y-3">
+        <div className="flex justify-between items-center"><p className="text-sm text-dim">{data.classes.length} ห้อง</p><Button variant="brand" size="sm" onClick={addNew}><Icon name="plus" size={14}/>สร้างห้องใหม่</Button></div>
+        <div className="space-y-2">{data.classes.map(c => <div key={c.id} className="p-3 border border-line rounded-xl flex items-center gap-2">
+          <Icon name="folder" size={16} className="text-dim flex-shrink-0"/>
+          <Input value={c.name} onChange={e => rename(c.id, e.target.value)} className="flex-1 !border-0 !bg-transparent !p-1"/>
+          <div className="text-xs text-dim hidden sm:block">{c.students.length} คน</div>
+          {c.sync?.enabled && <Icon name="cloud" size={14} className="text-dim flex-shrink-0" title="Cloud sync เปิดอยู่"/>}
+          <button onClick={() => { setDuplicating(c); setNewName(c.name+' (สำเนา)'); }} title="คัดลอก" className="btn p-1.5 rounded-md text-dim hover:bg-surface2 hover:text-ink"><Icon name="duplicate" size={14}/></button>
+          {data.classes.length>1 && <button onClick={() => setConfirmDelete(c)} title="ลบ" className="btn p-1.5 rounded-md hover:bg-surface2" style={{color:'var(--bad)'}}><Icon name="trash" size={14}/></button>}
+        </div>)}</div>
+        <div className="flex gap-3 p-3 rounded-lg text-xs" style={{background:'var(--surface-2)'}}><Icon name="alert" size={16} className="flex-shrink-0 mt-0.5" style={{color:'var(--info)'}}/><div className="text-ink">"คัดลอก" จะถามว่ารวมนักศึกษา/คะแนนด้วยหรือไม่ — เหมาะกับการสร้าง <strong>section ใหม่</strong> ที่มีโครงสร้างเหมือนเดิม</div></div>
+      </div>
+    </Modal>
+    <Modal open={!!duplicating} onClose={() => setDuplicating(null)} title="คัดลอกห้องเรียน">
+      {duplicating && <div className="space-y-4">
+        <div><label className="block text-xs font-medium text-dim mb-1">ชื่อห้องใหม่</label><Input value={newName} onChange={e => setNewName(e.target.value)}/></div>
+        <div className="space-y-2">
+          <Button variant="outline" onClick={() => dup(duplicating, false)} className="w-full justify-start text-left !py-3"><div className="text-left"><div className="font-medium">📋 คัดลอกเฉพาะโครงสร้าง</div><div className="text-xs text-dim font-normal">สัปดาห์, การสอบ, เกณฑ์เกรด (ไม่รวมนักศึกษา/คะแนน)</div></div></Button>
+          <Button variant="outline" onClick={() => dup(duplicating, true)} className="w-full justify-start text-left !py-3"><div className="text-left"><div className="font-medium">📚 คัดลอกทั้งหมด</div><div className="text-xs text-dim font-normal">รวมนักศึกษาและคะแนน</div></div></Button>
+        </div>
+        <Button variant="ghost" onClick={() => setDuplicating(null)} className="w-full">ยกเลิก</Button>
+      </div>}
+    </Modal>
+    <Modal open={!!confirmDelete} onClose={() => setConfirmDelete(null)} title="ยืนยันการลบห้อง">
+      {confirmDelete && <div className="space-y-4">
+        <div className="flex gap-3 p-3 rounded-lg" style={{background:'color-mix(in srgb, var(--bad) 8%, transparent)', border:'1px solid color-mix(in srgb, var(--bad) 25%, transparent)'}}><Icon name="alert" size={20} className="flex-shrink-0" style={{color:'var(--bad)'}}/><p className="text-sm text-ink">ลบห้อง <strong>{confirmDelete.name}</strong> — นักศึกษา {confirmDelete.students.length} คนและคะแนนจะหายถาวร<br/><span className="text-xs text-dim">ข้อมูลใน Google Sheets ยังอยู่</span></p></div>
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setConfirmDelete(null)}>ยกเลิก</Button><Button variant="brand" onClick={() => remove(confirmDelete.id)} className="!bg-[var(--bad)] !border-[var(--bad)]"><Icon name="trash" size={14}/>ลบห้อง</Button></div>
+      </div>}
+    </Modal>
+  </>;
+}
+
+function SettingsView({ data, update, cls, updateActive, exportCsv, importJson, exportJson, resetAll, doPullCloud, doPushCloud }) {
+  const fileRef = useRef();
+  const [syncSetupOpen, setSyncSetupOpen] = useState(false);
+  const toast = useToast();
+  const setWeekCount = (n) => { const num = Math.max(1, Math.min(60, Number(n)||1)); updateActive(c => { const cur = c.weeks.length; if (num>cur) for (let i=cur+1; i<=num; i++) c.weeks.push({number:i, maxAttendance:5, assignments:[]}); else if (num<cur) { const rm = c.weeks.slice(num).map(w => w.number); c.weeks = c.weeks.slice(0, num); for (const k of Object.keys(c.attendance)) { const wn = Number(k.split('-')[0]); if (rm.includes(wn)) delete c.attendance[k]; } for (const k of Object.keys(c.scores)) { const wn = Number(k.split('-')[0]); if (rm.includes(wn)) delete c.scores[k]; } } }); };
+  return <div className="space-y-6 a-fadeUp">
+    <div><h2 className="font-display text-2xl text-ink">ตั้งค่า</h2><p className="text-sm text-dim mt-1">การตั้งค่าของห้อง "<strong>{cls.name}</strong>" + การตั้งค่าทั่วไป</p></div>
+    <Card className="p-5">
+      <div className="flex items-center gap-2 mb-1"><Icon name="sparkle" size={16}/><h3 className="font-display text-lg text-ink">ธีมสี</h3><span className="text-xs text-dim ml-2">(ทั่วไป)</span></div>
+      <p className="text-sm text-dim mb-4">เลือกบรรยากาศของแอป</p>
+      <div className="flex flex-wrap gap-2">{THEMES.map(t => { const active = data.theme===t.id; return <button key={t.id} onClick={() => update(d => { d.theme = t.id; return d; })} className={`btn flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${active?'border-ink':'border-line hover:border-dim'}`}><span className="w-4 h-4 rounded-full" style={{background:t.dot}}/>{t.name}</button>; })}</div>
+    </Card>
+    <Card className="p-5">
+      <div className="flex items-center gap-2 mb-1"><Icon name="cloud" size={16}/><h3 className="font-display text-lg text-ink">Cloud Sync — Google Sheets</h3><span className="text-xs text-dim ml-2">(ของห้องนี้)</span></div>
+      <p className="text-sm text-dim mb-4">บันทึกอัตโนมัติไปยัง Google Sheets ของห้อง "<strong>{cls.name}</strong>"</p>
+      {!cls.sync?.url ? <div className="space-y-3"><div className="flex gap-3 p-3 rounded-lg" style={{background:'var(--surface-2)'}}><Icon name="cloud" size={20} className="flex-shrink-0 mt-0.5" style={{color:'var(--brand)'}}/><div className="text-sm text-ink">เมื่อตั้งค่าแล้ว เปิดบนเครื่องไหนก็ดึงข้อมูลล่าสุดอัตโนมัติ</div></div><Button variant="brand" onClick={() => setSyncSetupOpen(true)}><Icon name="cloud" size={14}/>ตั้งค่า Cloud Sync</Button></div> : <div className="space-y-3">
+        <div><label className="block text-xs font-medium text-dim mb-1">Web app URL</label><div className="flex gap-2"><Input value={cls.sync.url} onChange={e => updateActive(c => { c.sync.url = e.target.value; })} placeholder="https://script.google.com/macros/s/.../exec"/><Button variant="outline" onClick={() => setSyncSetupOpen(true)} title="ดูวิธีตั้งค่า"><Icon name="book" size={14}/></Button></div></div>
+        <div className="flex items-center gap-3 flex-wrap"><label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={cls.sync.enabled} onChange={e => updateActive(c => { c.sync.enabled = e.target.checked; })}/>เปิด auto-sync (Cloud-first mode)</label></div>
+        <div className="flex flex-wrap gap-2 pt-1"><Button variant="outline" onClick={doPushCloud}><Icon name="upload" size={14}/>Push ตอนนี้</Button><Button variant="outline" onClick={doPullCloud}><Icon name="download" size={14}/>Pull จาก Sheets</Button>{cls.sync.lastSyncAt && <span className="text-xs text-dim self-center">บันทึกล่าสุด: {new Date(cls.sync.lastSyncAt).toLocaleString('th-TH')}</span>}</div>
+      </div>}
+    </Card>
+    <Card className="p-5"><h3 className="font-display text-lg text-ink mb-4">ข้อมูลห้อง</h3><div className="space-y-3 max-w-md"><div><label className="block text-xs font-medium text-dim mb-1">ชื่อห้องเรียน</label><Input value={cls.name} onChange={e => updateActive(c => { c.name = e.target.value; })}/></div><div><label className="block text-xs font-medium text-dim mb-1">จำนวนสัปดาห์ทั้งหมด</label><Input type="number" value={cls.weeks.length} onChange={e => setWeekCount(e.target.value)} min={1} max={60}/></div></div></Card>
+    <Card className="p-5"><h3 className="font-display text-lg text-ink mb-1">คะแนนจิตพิสัยรายสัปดาห์</h3><p className="text-sm text-dim mb-4">กำหนดคะแนนเต็มของแต่ละสัปดาห์</p><div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2">{cls.weeks.map(w => <div key={w.number} className="flex items-center gap-2 p-2 border border-line rounded-lg"><span className="text-xs text-dim w-14 flex-shrink-0">สัปดาห์ {w.number}</span><Input type="number" value={w.maxAttendance} onChange={e => updateActive(c => { const ww = c.weeks.find(x => x.number===w.number); ww.maxAttendance = Number(e.target.value)||0; })} className="flex-1 min-w-0 !px-2 !py-1"/></div>)}</div></Card>
+    <Card className="p-5"><h3 className="font-display text-lg text-ink mb-1">เกณฑ์เกรด</h3><p className="text-sm text-dim mb-4">ปรับคะแนนขั้นต่ำของแต่ละเกรด (%)</p><div className="space-y-2">{cls.gradeScale.map((tier,i) => <div key={i} className="flex items-center gap-3"><GradeBadge grade={tier.grade}/><span className="text-sm text-dim">ขั้นต่ำ</span><Input type="number" value={tier.min} onChange={e => updateActive(c => { c.gradeScale[i].min = Number(e.target.value); })} className="w-24"/><span className="text-sm text-dim">%</span></div>)}</div></Card>
+    <Card className="p-5"><h3 className="font-display text-lg text-ink mb-1">ข้อมูล</h3><p className="text-sm text-dim mb-4">นำเข้า / ส่งออก / ล้างข้อมูล</p><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={exportCsv}><Icon name="download" size={14}/>CSV (ห้องนี้)</Button><Button variant="outline" onClick={exportJson}><Icon name="download" size={14}/>JSON สำรอง (ทั้งหมด)</Button><Button variant="outline" onClick={() => fileRef.current?.click()}><Icon name="upload" size={14}/>นำเข้าสำรอง</Button><input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (!f) return; const text = await f.text(); importJson(text); e.target.value=''; }}/><Button variant="danger" onClick={resetAll}><Icon name="trash" size={14}/>ล้างข้อมูลทั้งหมด</Button></div></Card>
+    <SyncSetupModal open={syncSetupOpen} onClose={() => setSyncSetupOpen(false)} currentUrl={cls.sync?.url||''} onSave={(url) => { updateActive(c => { c.sync.url = url; c.sync.enabled = true; }); setSyncSetupOpen(false); toast('ตั้งค่า Cloud Sync แล้ว','success'); }}/>
+  </div>;
+}
+
+function SyncSetupModal({ open, onClose, currentUrl, onSave }) {
+  const [url, setUrl] = useState(currentUrl);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => setUrl(currentUrl), [currentUrl, open]);
+  const copy = async () => { try { await navigator.clipboard.writeText(APPS_SCRIPT_CODE); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
+  return <Modal open={open} onClose={onClose} title="ตั้งค่า Cloud Sync" maxWidth="max-w-2xl">
+    <div className="space-y-4 text-sm">
+      <ol className="space-y-2 list-decimal list-inside text-ink">
+        <li>เปิด <a href="https://sheets.new" target="_blank" rel="noopener" className="underline" style={{color:'var(--brand)'}}>Google Sheets ใหม่ <Icon name="external" size={12} className="inline"/></a> สำหรับห้องนี้</li>
+        <li>คลิก <strong>Extensions → Apps Script</strong></li>
+        <li>ลบโค้ดเดิม วางโค้ดด้านล่างทับ</li>
+        <li>กดบันทึก → <strong>Deploy</strong> → <strong>New deployment</strong></li>
+        <li>กดไอคอน ⚙️ → เลือก <strong>Web app</strong></li>
+        <li><strong>Execute as: Me</strong>, <strong>Who has access: Anyone</strong></li>
+        <li>กด <strong>Deploy</strong> → อนุญาตสิทธิ์ → คัดลอก <strong>Web app URL</strong></li>
+        <li>วาง URL ลงในช่องด้านล่าง</li>
+      </ol>
+      <div><div className="flex items-center justify-between mb-2"><label className="text-xs font-medium text-dim">โค้ด Apps Script</label><Button size="sm" variant="outline" onClick={copy}><Icon name="copy" size={12}/>{copied?'คัดลอกแล้ว':'คัดลอกโค้ด'}</Button></div><pre className="text-[11px] font-mono p-3 rounded-lg overflow-x-auto max-h-48 border border-line" style={{background:'var(--surface-2)'}}>{APPS_SCRIPT_CODE}</pre></div>
+      <div><label className="block text-xs font-medium text-dim mb-1">Web app URL</label><Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec"/></div>
+      <div className="flex gap-3 p-3 rounded-lg text-xs" style={{background:'var(--surface-2)'}}><Icon name="alert" size={16} className="flex-shrink-0 mt-0.5" style={{color:'var(--warn)'}}/><div className="text-ink">URL นี้เปรียบเสมือนกุญแจสู่ Sheets อย่าแชร์ให้ผู้อื่น</div></div>
+      <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>ยกเลิก</Button><Button variant="brand" onClick={() => onSave(url.trim())} disabled={!url.trim().startsWith('http')}><Icon name="save" size={14}/>บันทึก</Button></div>
+    </div>
+  </Modal>;
+}
+
+function OnboardingModal({ open, onClose, onRestore }) {
+  const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  const restore = async () => { if (!url.trim().startsWith('http')) return; setBusy(true); const res = await pullFromCloud(url.trim()); setBusy(false); if (res.ok && res.data) { onRestore(url.trim(), res.data); toast('ดึงข้อมูลสำเร็จ','success'); } else toast(`ดึงไม่สำเร็จ: ${res.error||'ไม่พบข้อมูล'}`,'error'); };
+  return <Modal open={open} onClose={onClose} title="ยินดีต้อนรับ" maxWidth="max-w-xl">
+    <div className="space-y-4">
+      <p className="text-sm text-dim">เริ่มต้นใช้งานครั้งแรก เลือกวิธี:</p>
+      <button onClick={onClose} className="w-full text-left p-4 border border-line rounded-xl hover:border-dim transition-colors"><div className="font-display text-lg text-ink">✨ เริ่มต้นใหม่</div><div className="text-sm text-dim mt-1">สร้างห้องเรียนเปล่า เพิ่มนักศึกษาเองทีหลัง</div></button>
+      <div className="p-4 border border-line rounded-xl"><div className="font-display text-lg text-ink">☁️ ดึงข้อมูลจาก Google Sheets</div><div className="text-sm text-dim mt-1 mb-3">ถ้าตั้งค่า Cloud Sync ไว้แล้วจากเครื่องอื่น วาง Web app URL ที่นี่</div><div className="flex gap-2"><Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec"/><Button variant="brand" onClick={restore} disabled={busy||!url.trim().startsWith('http')}>{busy ? <Icon name="refresh" size={14} className="spinner"/> : <Icon name="download" size={14}/>}ดึงข้อมูล</Button></div></div>
+    </div>
+  </Modal>;
+}
+
+const NAV = [
+  {id:'dashboard', label:'ภาพรวม', icon:'dashboard'},
+  {id:'students', label:'นักศึกษา', icon:'users'},
+  {id:'weekly', label:'รายสัปดาห์', icon:'calendar'},
+  {id:'exams', label:'การสอบ', icon:'book'},
+  {id:'settings', label:'ตั้งค่า', icon:'settings'},
+];
+
+function AppInner() {
+  const { data, setData, update, updateActive, loading, saving, syncStatus, needsOnboarding, setNeedsOnboarding } = useGradebook();
+  const [tab, setTab] = useState('dashboard');
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [classManagerOpen, setClassManagerOpen] = useState(false);
+  const toast = useToast();
+  const activeClass = data?.classes.find(c => c.id===data.activeClassId) || data?.classes[0];
+
+  const exportCsv = () => {
+    if (!activeClass) return;
+    const head = ['รหัส','ชื่อ','ชื่อเล่น'];
+    for (const w of activeClass.weeks) head.push(`W${w.number}`);
+    for (const ex of (activeClass.exams||[])) head.push(ex.name);
+    head.push('รวม','%','เกรด');
+    const rows = [head];
+    for (const s of activeClass.students) {
+      const r = [s.studentId, s.name, s.nickname||''];
+      let earned=0, possible=0;
+      for (const w of activeClass.weeks) { let we=0, wp=w.maxAttendance||0; const at = activeClass.attendance[`${w.number}-${s.id}`]; if (at) we += (w.maxAttendance||0)*(ATTENDANCE_WEIGHT[at.status]||0); for (const a of (w.assignments||[])) { wp += a.maxScore||0; const sc = activeClass.scores[`${w.number}-${s.id}-${a.id}`]; if (sc?.score) we += sc.score; } r.push(we.toFixed(2)); earned += we; possible += wp; }
+      for (const ex of (activeClass.exams||[])) { const sc = activeClass.examScores?.[`${ex.id}-${s.id}`]; const v = sc?.score||0; r.push(v); earned += v; possible += ex.maxScore||0; }
+      const pct = possible>0 ? (earned/possible)*100 : 0;
+      r.push(earned.toFixed(2), pct.toFixed(2)+'%', getLetterGrade(pct, activeClass.gradeScale));
+      rows.push(r);
+    }
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `${activeClass.name||'gradebook'}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast('ดาวน์โหลด CSV แล้ว','success');
+  };
+  const exportJson = () => { if (!data) return; const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `gradebook-backup.json`; a.click(); URL.revokeObjectURL(url); toast('ดาวน์โหลด JSON แล้ว','success'); };
+  const importJson = (text) => { try { const parsed = migrateData(JSON.parse(text)); setData(parsed); toast('นำเข้าข้อมูลแล้ว','success'); } catch { toast('ไฟล์ไม่ถูกต้อง','error'); } };
+  const doPushCloud = async () => { if (!activeClass?.sync?.url) { toast('ยังไม่ได้ตั้งค่า URL','error'); return; } toast('กำลัง push...','info'); const res = await syncToCloud(activeClass.sync.url, activeClass); if (res.ok) { updateActive(c => { c.sync.lastSyncAt = nowISO(); }); toast('Push สำเร็จ','success'); } else toast(`Push ไม่สำเร็จ: ${res.error}`,'error'); };
+  const doPullCloud = async () => { if (!activeClass?.sync?.url) { toast('ยังไม่ได้ตั้งค่า URL','error'); return; } if (!confirm('การ Pull จะเขียนทับข้อมูลในเครื่อง คุณแน่ใจหรือไม่?')) return; toast('กำลัง pull...','info'); const res = await pullFromCloud(activeClass.sync.url); if (res.ok && res.data) { update(d => { const idx = d.classes.findIndex(c => c.id===activeClass.id); if (idx>=0) d.classes[idx] = { ...res.data, id:activeClass.id, sync:activeClass.sync }; return d; }); toast('Pull สำเร็จ','success'); } else toast(`Pull ไม่สำเร็จ: ${res.error||'ไม่พบข้อมูล'}`,'error'); };
+  const doReset = async () => { await storage.delete(STORAGE_KEY); setData(createDefaultData()); setConfirmReset(false); toast('ล้างข้อมูลแล้ว','success'); };
+  const onRestoreFromCloud = (url, classData) => { setData(prev => { const copy = structuredClone(prev); const cls = { ...classData, id:'cls-'+uid(), sync:{url, enabled:true, lastSyncAt:nowISO()} }; copy.classes = [cls]; copy.activeClassId = cls.id; return copy; }); setNeedsOnboarding(false); };
+
+  if (loading || !data) return <div className="min-h-screen flex items-center justify-center bg-bg"><div className="text-dim text-sm flex items-center gap-2"><Icon name="refresh" size={16} className="spinner"/>กำลังโหลด…</div></div>;
+
+  return <div className="min-h-screen bg-bg text-ink">
+    <header className="border-b border-line bg-bg/85 backdrop-blur-md sticky top-0 z-30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-shrink">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{background:'var(--ink)', color:'var(--bg)'}}><Icon name="award" size={18}/></div>
+          <div className="min-w-0"><div className="font-display text-base sm:text-lg leading-tight text-ink truncate">Gradebook</div><div className="text-[11px] text-dim">ระบบบันทึกคะแนน</div></div>
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {syncStatus==='syncing' && <span className="text-xs text-dim hidden sm:flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'var(--info)'}}/>sync…</span>}
+          {syncStatus==='synced' && <span className="text-xs hidden sm:flex items-center gap-1.5" style={{color:'var(--good)'}}><Icon name="check" size={12}/>Synced</span>}
+          {syncStatus==='error' && <span className="text-xs hidden sm:flex items-center gap-1.5" style={{color:'var(--bad)'}}><Icon name="alert" size={12}/>error</span>}
+          {syncStatus==='idle' && saving && <span className="text-xs text-dim hidden sm:flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:'var(--good)'}}/>บันทึก…</span>}
+          <ClassSwitcher data={data} update={update} onManage={() => setClassManagerOpen(true)}/>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 overflow-x-auto scrollbar-thin">
+        <nav className="flex gap-1 -mb-px min-w-max">{NAV.map(n => { const active = tab===n.id; return <button key={n.id} onClick={() => setTab(n.id)} data-active={active} className={`tab-btn flex items-center gap-2 px-4 py-3 text-sm font-medium ${active?'text-ink':'text-dim hover:text-ink'}`}><Icon name={n.icon} size={15}/>{n.label}</button>; })}</nav>
+      </div>
+    </header>
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8" key={`${tab}-${activeClass?.id}`}>
+      {tab==='dashboard' && <Dashboard cls={activeClass}/>}
+      {tab==='students' && <StudentsView cls={activeClass} updateActive={updateActive}/>}
+      {tab==='weekly' && <WeeklyView cls={activeClass} updateActive={updateActive}/>}
+      {tab==='exams' && <ExamsView cls={activeClass} updateActive={updateActive}/>}
+      {tab==='settings' && <SettingsView data={data} update={update} cls={activeClass} updateActive={updateActive} exportCsv={exportCsv} exportJson={exportJson} importJson={importJson} resetAll={() => setConfirmReset(true)} doPushCloud={doPushCloud} doPullCloud={doPullCloud}/>}
+    </main>
+    <ClassManager open={classManagerOpen} onClose={() => setClassManagerOpen(false)} data={data} update={update}/>
+    <OnboardingModal open={needsOnboarding} onClose={() => setNeedsOnboarding(false)} onRestore={onRestoreFromCloud}/>
+    <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="ล้างข้อมูลทั้งหมด">
+      <div className="space-y-4">
+        <div className="flex gap-3 p-3 rounded-lg" style={{background:'color-mix(in srgb, var(--bad) 8%, transparent)'}}><Icon name="alert" size={20} className="flex-shrink-0 mt-0.5" style={{color:'var(--bad)'}}/><p className="text-sm text-ink">จะลบ <strong>ทุกห้อง</strong> และข้อมูลทั้งหมด แนะนำให้กด ส่งออกสำรอง JSON ก่อน</p></div>
+        <div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => setConfirmReset(false)}>ยกเลิก</Button><Button variant="brand" onClick={doReset} className="!bg-[var(--bad)] !border-[var(--bad)]"><Icon name="trash" size={14}/>ล้างทั้งหมด</Button></div>
+      </div>
+    </Modal>
+    <footer className="max-w-7xl mx-auto px-6 py-8 text-center text-xs text-dim">ห้อง "{activeClass?.name}" · {activeClass?.sync?.enabled ? '☁️ cloud-sync เปิดอยู่' : '💾 local · กดส่งออกสำรองเป็นระยะ'}</footer>
+  </div>;
+}
+function App() { return <ToastProvider><AppInner/></ToastProvider>; }
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
